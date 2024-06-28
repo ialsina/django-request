@@ -7,6 +7,7 @@ name = "django-request"
 version = "1.6.3"
 dependencies = [
     "Django>=4.2",
+    "geoip2>=4.8.0",
     "python-dateutil",
 ]
 description = "django-request is a statistics module for django. It stores requests in a database for admins to see, it can also be used to get statistics on who is online etc."
