@@ -16,6 +16,7 @@ LOG_USER = getattr(settings, "REQUEST_LOG_USER", True)
 IGNORE_USERNAME = getattr(settings, "REQUEST_IGNORE_USERNAME", tuple())
 IGNORE_PATHS = getattr(settings, "REQUEST_IGNORE_PATHS", tuple())
 IGNORE_USER_AGENTS = getattr(settings, "REQUEST_IGNORE_USER_AGENTS", tuple())
+CITY_DB_LOCATION = getattr(settings, "REQUEST_CITY_DB_LOCATION", False)
 
 TRAFFIC_MODULES = getattr(
     settings,

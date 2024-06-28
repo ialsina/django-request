@@ -6,6 +6,9 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+import geoip2.database
+import geoip2.errors
+
 from . import settings as request_settings
 from .managers import RequestManager
 from .utils import HTTP_STATUS_CODES, browsers, engines, request_is_ajax
@@ -45,6 +48,9 @@ class Request(models.Model):
         _("user agent"), max_length=255, blank=True, null=True
     )
     language = models.CharField(_("language"), max_length=255, blank=True, null=True)
+    city = models.CharField(_("city"), max_length=255, blank=True, null=True)
+    country = models.CharField(_("country"), max_length=255, blank=True, null=True)
+    region = models.CharField(_("region"), max_length=255, blank=True, null=True)
 
     objects = RequestManager()
 
@@ -76,6 +82,10 @@ class Request(models.Model):
         self.user_agent = request.META.get("HTTP_USER_AGENT", "")[:255]
         self.language = request.META.get("HTTP_ACCEPT_LANGUAGE", "")[:255]
 
+        city, country, region = _get_ip_location(self.ip)
+        self.city = city
+        self.country = country
+        self.region = region
         if hasattr(request, "user") and hasattr(request.user, "is_authenticated"):
             is_authenticated = request.user.is_authenticated
             if is_authenticated:
@@ -127,3 +137,22 @@ class Request(models.Model):
             self.user = None
 
         super().save(*args, **kwargs)
+
+
+def _get_ip_location(ip):
+    city_db_location = request_settings.CITY_DB_LOCATION
+    print(f"city_db_location: {city_db_location}")
+    if city_db_location:
+        try:
+            with geoip2.database.Reader(city_db_location) as reader:
+                response = reader.city(ip)
+                return (
+                    response.city.name,
+                    response.country.name,
+                    response.region.name,
+                )
+        except geoip2.errors.AddressNotFoundError:
+            return ("?", "?", "?")
+        except geoip2.errors.GeoIP2Error:
+            return (None, None, None)
+    return (None, None, None)
